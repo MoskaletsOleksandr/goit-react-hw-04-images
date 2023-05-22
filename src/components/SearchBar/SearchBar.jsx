@@ -1,42 +1,38 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useState } from 'react';
 import { Bar, SearchForm, Input } from './SearchBar.styled';
 import { Button } from 'components/common/Button';
 
-export class SearchBar extends Component {
-  state = {
-    searchedWord: '',
-  };
+export const SearchBar =({onSubmit}) => {
+  const [searchedWord, setSearchedWord] = useState('');
 
-  handleWordChange = event => {
-    this.setState({ searchedWord: event.currentTarget.value.toLowerCase() });
+  const handleWordChange = ({ target }) => {
+    setSearchedWord(target.value.toLowerCase());
   };
-
-  handleSubmit = event => {
+  
+  const handleSubmit = event => {
     event.preventDefault();
 
-    this.props.onSubmit(this.state.searchedWord);
-    this.setState({ searchedWord: '' });
+    onSubmit(searchedWord);
+    setSearchedWord('')
   };
 
-  render() {
     return (
       <Bar>
-        <SearchForm onSubmit={this.handleSubmit}>
+        <SearchForm onSubmit={handleSubmit}>
           <Input
             type="text"
             autocomplete="off"
             autoFocus
             placeholder="Search images and photos"
-            value={this.state.searchedWord}
-            onChange={this.handleWordChange}
+            value={searchedWord}
+            onChange={handleWordChange}
           />
           <Button>Search</Button>
         </SearchForm>
       </Bar>
     );
   }
-}
 
 SearchBar.propTypes = {
   onSubmit: PropTypes.func.isRequired,
