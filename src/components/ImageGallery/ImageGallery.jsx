@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { List } from './ImageGallery.styled';
 import { fetchPhotos } from '../../services/pixabay-api';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 import { Button } from 'components/common/Button';
 import { Loader } from 'components/common/Loader';
@@ -15,37 +15,24 @@ const Status = {
 };
 
 export const ImageGallery = ({ openModal, searchedWord }) => {
-  const [images, setImages] = useState(null);
+  const [images, setImages] = useState([]);
   const [error, setError] = useState(null);
   const [status, setStatus] = useState(Status.IDLE);
   const [totalHits, setTotalHits] = useState(null);
   const [page, setPage] = useState(1);
-  // const isInitialLoadRef = useRef(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   useEffect(() => {
-    //   console.log(isInitialLoadRef.current);
-
-    // if (isInitialLoadRef.current) {
-    //   isInitialLoadRef.current = false;
-    //   console.log(isInitialLoadRef.current);
-
-    //   return;
-    // }
-
-    if (isInitialLoad) {
-      setIsInitialLoad(false);
+    if (!searchedWord) {
       return;
     }
 
     setStatus(Status.PENDING);
-    setPage(1);
 
     const fetchData = async () => {
       try {
         const { hits, totalHits } = await fetchPhotos(searchedWord, page);
 
-        setImages(hits);
+    setImages(prevImages => [...prevImages, ...hits]);
         setTotalHits(totalHits);
         setStatus(Status.RESOLVED);
       } catch (error) {
@@ -53,21 +40,12 @@ export const ImageGallery = ({ openModal, searchedWord }) => {
         setStatus(Status.REJECTED);
       }
     };
-
+console.log(page)
     fetchData();
   }, [searchedWord, page]);
 
   const handleMoreBtnClick = async () => {
-    setStatus(Status.PENDING);
-    console.log(page);
     setPage(prevPage => prevPage += 1);
-    console.log(page);
-
-    const { hits } = await fetchPhotos(searchedWord, page);
-
-    setImages(images => [...images, ...hits]);
-    setStatus(Status.RESOLVED);
-
     scrollMoreButton();
   };
 
@@ -116,6 +94,8 @@ export const ImageGallery = ({ openModal, searchedWord }) => {
   if (status === Status.REJECTED) {
     return <h3>{error}</h3>;
   }
+
+  <h2>header</h2>
 };
 
 ImageGallery.propTypes = {

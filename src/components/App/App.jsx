@@ -1,51 +1,44 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { Container } from './App.styled';
 import { SearchBar } from 'components/SearchBar';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { Modal } from 'components/common/Modal';
 import { Section } from 'components/common/Section';
 
-export class App extends Component {
-  state = {
-    searchedWord: '',
-    showModal: false,
-    largeImageURL: null,
-    alt: null,
+export const App = () => {
+  const [searchedWord, setSearchedWord] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [largeImageURL, setLargeImageURL] = useState(null);
+  const [alt, setAlt] = useState(null);
+
+  const handleSearchFormSubmit = searchedWord => {
+    setSearchedWord(searchedWord);
   };
 
-  handleSearchFormSubmit = searchedWord => {
-    this.setState({ searchedWord });
+  const toggleModal = () => {
+    setShowModal(prevShowModal => !prevShowModal);
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
+  const openModal = (largeImgURL, tags) => {
+    toggleModal();
+    setLargeImageURL(largeImgURL);
+    setAlt(tags);
   };
 
-  openModal = (largeImgURL, tags) => {
-    this.setState({
-      showModal: true,
-      largeImageURL: largeImgURL,
-      alt: tags,
-    });
-  };
-  render() {
-    const { searchedWord, showModal, largeImageURL, alt } = this.state;
-
-    return (
-      <Container>
-        <SearchBar onSubmit={this.handleSearchFormSubmit} />
-        <Section>
-          <ImageGallery
-            searchedWord={searchedWord}
-            openModal={this.openModal}
-          ></ImageGallery>
-        </Section>
-        {showModal && (
-          <Modal onClose={this.toggleModal}>
-            <img src={largeImageURL} alt={alt} width={1100} height={800} />
-          </Modal>
-        )}
-      </Container>
-    );
-  }
-}
+  return (
+    <Container>
+      <SearchBar onSubmit={handleSearchFormSubmit} />
+      <Section>
+        <ImageGallery
+          searchedWord={searchedWord}
+          openModal={openModal}
+        ></ImageGallery>
+      </Section>
+      {showModal && (
+        <Modal onClose={toggleModal}>
+          <img src={largeImageURL} alt={alt} width={1100} height={800} />
+        </Modal>
+      )}
+    </Container>
+  );
+};
