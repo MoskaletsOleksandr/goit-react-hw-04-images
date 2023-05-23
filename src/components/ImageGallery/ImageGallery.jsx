@@ -20,15 +20,21 @@ export const ImageGallery = ({ openModal, searchedWord }) => {
   const [status, setStatus] = useState(Status.IDLE);
   const [totalHits, setTotalHits] = useState(null);
   const [page, setPage] = useState(1);
-  const isInitialLoadRef = useRef(true);
-
+  // const isInitialLoadRef = useRef(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
   useEffect(() => {
-      console.log(isInitialLoadRef.current);
+    //   console.log(isInitialLoadRef.current);
 
-    if (isInitialLoadRef.current) {
-      isInitialLoadRef.current = false;
-      console.log(isInitialLoadRef.current);
+    // if (isInitialLoadRef.current) {
+    //   isInitialLoadRef.current = false;
+    //   console.log(isInitialLoadRef.current);
 
+    //   return;
+    // }
+
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
       return;
     }
 
@@ -53,10 +59,13 @@ export const ImageGallery = ({ openModal, searchedWord }) => {
 
   const handleMoreBtnClick = async () => {
     setStatus(Status.PENDING);
-    setPage(prevPage => (prevPage += 1));
+    console.log(page);
+    setPage(prevPage => prevPage += 1);
+    console.log(page);
+
     const { hits } = await fetchPhotos(searchedWord, page);
 
-    setImages(preImages => [...preImages, ...hits]);
+    setImages(images => [...images, ...hits]);
     setStatus(Status.RESOLVED);
 
     scrollMoreButton();
@@ -95,11 +104,11 @@ export const ImageGallery = ({ openModal, searchedWord }) => {
               );
             })}
         </List>
-        {/* {totalHits >= images.length && (
+        {totalHits >= images.length && (
             <Button type="button" loadMore={handleMoreBtnClick}>
               Load more
             </Button>
-          )} */}
+          )}
       </>
     );
   }
