@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { animateScroll } from 'react-scroll';
 
+import { fetchPhotos } from '../../services/pixabay-api';
+
 import { Container } from './App.styled';
 import { SearchBar } from 'components/SearchBar';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
@@ -8,7 +10,6 @@ import { Modal } from 'components/common/Modal';
 import { Section } from 'components/common/Section';
 import { Button } from 'components/common/Button';
 import { Loader } from 'components/common/Loader';
-import { fetchPhotos } from '../../services/pixabay-api';
 
 export const App = () => {
   const [searchedWord, setSearchedWord] = useState('');
@@ -21,13 +22,14 @@ export const App = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!searchedWord) {
-      return;
-    }
-
-    setLoading(true);
+useEffect(() => {
     const fetchData = async () => {
+      if (!searchedWord) {
+        return;
+      }
+
+      setLoading(true);
+
       try {
         const { hits, totalHits } = await fetchPhotos(searchedWord, page);
         setImages(prevImages => [...prevImages, ...hits]);
@@ -35,10 +37,13 @@ export const App = () => {
       } catch (error) {
         setError(error.message);
       }
+
       setLoading(false);
     };
+
     fetchData();
   }, [searchedWord, page]);
+
 
   const handleSearchFormSubmit = searchedWord => {
     setSearchedWord(searchedWord);
