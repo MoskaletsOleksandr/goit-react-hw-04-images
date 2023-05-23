@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react';
+import { animateScroll } from 'react-scroll';
+
 import { Container } from './App.styled';
 import { SearchBar } from 'components/SearchBar';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
@@ -5,9 +8,7 @@ import { Modal } from 'components/common/Modal';
 import { Section } from 'components/common/Section';
 import { Button } from 'components/common/Button';
 import { Loader } from 'components/common/Loader';
-import { animateScroll } from 'react-scroll';
 import { fetchPhotos } from '../../services/pixabay-api';
-import { useState, useEffect } from 'react';
 
 export const App = () => {
   const [searchedWord, setSearchedWord] = useState('');
@@ -29,7 +30,6 @@ export const App = () => {
     const fetchData = async () => {
       try {
         const { hits, totalHits } = await fetchPhotos(searchedWord, page);
-
         setImages(prevImages => [...prevImages, ...hits]);
         setTotalHits(totalHits);
       } catch (error) {
@@ -40,8 +40,16 @@ export const App = () => {
     fetchData();
   }, [searchedWord, page]);
 
+  const handleSearchFormSubmit = searchedWord => {
+    setSearchedWord(searchedWord);
+    setPage(1);
+    setImages([]);
+    setError(null);
+    setTotalHits(null);
+  };
+
   const handleMoreBtnClick = async () => {
-    setPage(prevPage => (prevPage += 1));
+    setPage(prevPage => prevPage + 1);
     scrollMoreButton();
   };
 
@@ -51,12 +59,6 @@ export const App = () => {
       delay: 10,
       smooth: 'linear',
     });
-  };
-
-  const handleSearchFormSubmit = searchedWord => {
-    setSearchedWord(searchedWord);
-    setPage(1);
-    setImages([]);
   };
 
   const toggleModal = () => {
@@ -76,7 +78,7 @@ export const App = () => {
         {loading ? (
           <Loader />
         ) : (
-          <ImageGallery images={images} openModal={openModal}></ImageGallery>
+          <ImageGallery images={images} openModal={openModal} />
         )}
         {error && <h3>{error}</h3>}
         {totalHits > images.length && (
