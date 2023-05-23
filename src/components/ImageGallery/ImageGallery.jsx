@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { List } from './ImageGallery.styled';
-import { PixabayAPI } from '../../services/pixabay-api';
-import { Component } from 'react';
+import { fetchPhotos } from '../../services/pixabay-api';
+import { useState, useEffect, useRef } from 'react';
 import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 import { Button } from 'components/common/Button';
 import { Loader } from 'components/common/Loader';
@@ -14,54 +14,55 @@ const Status = {
   REJECTED: 'rejected',
 };
 
-const pixabayAPI = new PixabayAPI();
+export const ImageGallery = ({ openModal, searchedWord }) => {
+  const [images, setImages] = useState(null);
+  const [error, setError] = useState(null);
+  const [status, setStatus] = useState(Status.IDLE);
+  const [totalHits, setTotalHits] = useState(null);
+  const [page, setPage] = useState(1);
+  const isInitialLoadRef = useRef(true);
 
-export class ImageGallery extends Component {
-  state = {
-    images: null,
-    error: null,
-    status: Status.IDLE,
-    totalHits: null,
-  };
+  useEffect(() => {
+      console.log(isInitialLoadRef.current);
 
-  componentDidUpdate(prevProps) {
-    const prevWord = prevProps.searchedWord;
-    const nextWord = this.props.searchedWord;
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      console.log(isInitialLoadRef.current);
 
-    if (prevWord !== nextWord) {
-      this.setState({ status: Status.PENDING });
-      pixabayAPI.searchedWord = nextWord;
-      pixabayAPI.page = 1;
-
-      pixabayAPI
-        .fetchPhotos()
-        .then(({ hits, totalHits }) =>
-          this.setState({
-            images: hits,
-            status: Status.RESOLVED,
-            totalHits,
-          })
-        )
-        .catch(({ message }) =>
-          this.setState({ error: message, status: Status.REJECTED })
-        );
+      return;
     }
-  }
 
-  handleMoreBtnClick = () => {
-    this.setState({ status: Status.PENDING });
-    pixabayAPI.page += 1;
-    pixabayAPI.fetchPhotos().then(({hits}) =>
-      this.setState(({ images }) => ({
-        images: [...images, ...hits],
-        status: Status.RESOLVED,
-      }))
-    );
+    setStatus(Status.PENDING);
+    setPage(1);
 
-    this.scrollMoreButton();
+    const fetchData = async () => {
+      try {
+        const { hits, totalHits } = await fetchPhotos(searchedWord, page);
+
+        setImages(hits);
+        setTotalHits(totalHits);
+        setStatus(Status.RESOLVED);
+      } catch (error) {
+        setError(error);
+        setStatus(Status.REJECTED);
+      }
+    };
+
+    fetchData();
+  }, [searchedWord, page]);
+
+  const handleMoreBtnClick = async () => {
+    setStatus(Status.PENDING);
+    setPage(prevPage => (prevPage += 1));
+    const { hits } = await fetchPhotos(searchedWord, page);
+
+    setImages(preImages => [...preImages, ...hits]);
+    setStatus(Status.RESOLVED);
+
+    scrollMoreButton();
   };
 
-  scrollMoreButton = () => {
+  const scrollMoreButton = () => {
     animateScroll.scrollToBottom({
       duration: 1000,
       delay: 10,
@@ -69,48 +70,44 @@ export class ImageGallery extends Component {
     });
   };
 
-  render() {
-    const { images, status, error, totalHits } = this.state;
+  if (status === Status.IDLE) {
+    return <h3>Enter a search query.</h3>;
+  }
 
-    if (status === 'idle') {
-      return <h3>Enter a search query.</h3>;
-    }
+  if (status === Status.PENDING) {
+    return <Loader />;
+  }
 
-    if (status === 'pending') {
-      return <Loader />;
-    }
-
-    if (status === 'resolved') {
-      return (
-        <>
-          <List>
-            {images &&
-              images.map(({ id, tags, webformatURL, largeImageURL }) => {
-                return (
-                  <ImageGalleryItem
-                    key={id}
-                    alt={tags}
-                    webformatURL={webformatURL}
-                    largeImageURL={largeImageURL}
-                    openModal={this.props.openModal}
-                  />
-                );
-              })}
-          </List>
-          {totalHits >= pixabayAPI.loadedPhotos() && (
-            <Button type="button" loadMore={this.handleMoreBtnClick}>
+  if (status === Status.RESOLVED) {
+    return (
+      <>
+        <List>
+          {images &&
+            images.map(({ id, tags, webformatURL, largeImageURL }) => {
+              return (
+                <ImageGalleryItem
+                  key={id}
+                  alt={tags}
+                  webformatURL={webformatURL}
+                  largeImageURL={largeImageURL}
+                  openModal={openModal}
+                />
+              );
+            })}
+        </List>
+        {/* {totalHits >= images.length && (
+            <Button type="button" loadMore={handleMoreBtnClick}>
               Load more
             </Button>
-          )}
-        </>
-      );
-    }
-
-    if (status === 'rejected') {
-      return <h3>{error}</h3>;
-    }
+          )} */}
+      </>
+    );
   }
-}
+
+  if (status === Status.REJECTED) {
+    return <h3>{error}</h3>;
+  }
+};
 
 ImageGallery.propTypes = {
   openModal: PropTypes.func.isRequired,

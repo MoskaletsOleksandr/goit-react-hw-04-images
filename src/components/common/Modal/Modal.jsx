@@ -5,7 +5,7 @@ import { ModalBackdrop, ModalContent } from './Modal.styled';
 
 const modalRoot = document.querySelector('#modal-root');
 
-export const Modal = ({onClose, children}) => {
+export const Modal = ({ onClose, children }) => {
   useEffect(() => {
     const handleKeyDown = event => {
       if (event.code !== 'Escape') {
@@ -18,7 +18,7 @@ export const Modal = ({onClose, children}) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onClose])
+  }, [onClose]);
 
   const handleBackdropClick = event => {
     if (event.currentTarget === event.target) {
@@ -26,13 +26,13 @@ export const Modal = ({onClose, children}) => {
     }
   };
 
-    return createPortal(
-      <ModalBackdrop onClick={handleBackdropClick}>
-        <ModalContent>{children}</ModalContent>
-      </ModalBackdrop>,
-      modalRoot
-    );
-  }
+  return createPortal(
+    <ModalBackdrop onClick={handleBackdropClick}>
+      <ModalContent>{children}</ModalContent>
+    </ModalBackdrop>,
+    modalRoot
+  );
+};
 
 Modal.propTypes = {
   onClose: PropTypes.func.isRequired,

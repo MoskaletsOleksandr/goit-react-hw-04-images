@@ -42,12 +42,7 @@ export class App extends Component {
         </Section>
         {showModal && (
           <Modal onClose={this.toggleModal}>
-            <img
-              src={largeImageURL}
-              alt={alt}
-              width={1100}
-              height={800}
-            />
+            <img src={largeImageURL} alt={alt} width={1100} height={800} />
           </Modal>
         )}
       </Container>
